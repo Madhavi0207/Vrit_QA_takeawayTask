@@ -1,0 +1,98 @@
+name: CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+  # Uncomment for scheduled runs (weekdays 03:00 UTC).
+  # schedule:
+  #   - cron: "0 3 * * 1-5"
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------- CI: Fast checks, safe to run on every PR ----------
+  typecheck:
+    name: Type check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript compile check
+        run: npm run typecheck
+
+  # ---------- E2E: Runs against production, not on pull requests ----------
+  e2e:
+    name: E2E tests
+    needs: typecheck
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    concurrency:
+      group: e2e-prod
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      # Create the directory before Cucumber generates reports
+      - name: Create reports directory
+        run: mkdir -p reports
+
+      - name: Run e2e tests
+        run: npm run test:e2e:ci
+        env:
+          CI: true
+          TESTMAIL_API_KEY: ${{ secrets.TESTMAIL_API_KEY }}
+          TESTMAIL_NAMESPACE: ${{ secrets.TESTMAIL_NAMESPACE }}
+
+      # Add test result to GitHub Actions summary
+      - name: Add result to run summary
+        if: always()
+        run: |
+          echo "### E2E run" >> "$GITHUB_STEP_SUMMARY"
+          echo "Status: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Download the full report from the Artifacts section." >> "$GITHUB_STEP_SUMMARY"
+
+      # Upload reports even if tests fail
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-report
+          path: reports/
+          if-no-files-found: warn
+          retention-days: 14
