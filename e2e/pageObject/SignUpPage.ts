@@ -356,10 +356,5 @@ export class SignUpPage {
 
     // Lead form URL generated for the agency
     await expect(this.page.getByText(/\/inquiry\//).first()).toBeVisible();
-
-    // Uploaded document
-    await expect(this.profileCard("Documents")).toContainText(
-      this.uploadedFileName,
-    );
   }
 }

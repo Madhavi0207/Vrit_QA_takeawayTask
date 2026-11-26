@@ -25,6 +25,7 @@ Feature: Sign Up
       | 01234578        | Australia        | Universities         | hello this is test   |
 
     Then The user logs into the dashboard
+    And The user sees the entered details on the profile page
 
     Examples:
       | entryPoint |
