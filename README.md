@@ -330,7 +330,3 @@ Add these **repository secrets** in GitHub (Settings â†’ Secrets and variables â
 ## Demo Video
 
 **Watch the demo:** (https://github.com/Madhavi0207/Vrit_QA_takeawayTask/issues/2#issue-6621730502)
-
-_Make sure the link is set to "Anyone with the link can view"._
-
-Suggested contents: project structure overview, running `npm run test:e2e`, the browser walking through the sign-up flow, the OTP being picked up from Testmail, the profile page verification, and the passing result in the terminal.
