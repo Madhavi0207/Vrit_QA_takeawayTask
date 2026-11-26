@@ -81,12 +81,12 @@ export class SignUpPage {
     this.getStartedButton = this.page.getByRole("link", {
       name: "Get Started",
     });
-    // "Join Us Now" in the hero section: solid primary-coloured button
+    // "Join Us Now" in the hero section
     this.heroJoinUsButton = this.page
       .locator("button.bg-primary")
       .filter({ hasText: "Join Us Now" })
       .first();
-    // "Join Us Now" in the bottom call-to-action: white button with a link icon
+    // "Join Us Now" in the bottom call-to-action
     this.bottomJoinUsButton = this.page
       .locator("button.bg-white")
       .filter({ has: this.page.locator("svg.lucide-link") })
@@ -158,15 +158,12 @@ export class SignUpPage {
       .nth(0);
     this.submitButton = this.page.getByRole("button", { name: "Submit" });
 
-    // Dashboard navigation: on the logged-in area the logo links to /admin
-    // (on the public pages it links to "/")
+    // Dashboard navigation
 
     this.dashboardPage = this.page
       .locator('a[href="/admin"] img[alt="Logo"]')
       .first();
   }
-
-  // Locators that depend on values from the feature file's data tables
 
   private regionOption(region: string): Locator {
     return this.page.locator(`div[role="dialog"] span:text-is("${region}")`);
@@ -188,10 +185,6 @@ export class SignUpPage {
     return this.page.getByRole("checkbox", { name: service });
   }
 
-  // The sign up page can be opened from three places on the landing page:
-  //   header -> "Get Started" link (default)
-  //   hero   -> "Join Us Now" button in the hero section
-  //   bottom -> "Join Us Now" button (with link icon) in the bottom call-to-action
   private entryButton(entryPoint: string): Locator {
     switch (entryPoint.trim().toLowerCase()) {
       case "header":
@@ -295,9 +288,7 @@ export class SignUpPage {
   }
 
   async verifyDashboardLoaded(): Promise<void> {
-    // The registration flow ends in the logged-in /admin area...
     await expect(this.page).toHaveURL(/\/admin/, { timeout: 30000 });
-    // ...where the logo links to /admin (public pages link to "/")
     await expect(this.dashboardPage).toBeVisible({ timeout: 30000 });
   }
 
@@ -327,7 +318,7 @@ export class SignUpPage {
     });
     await expect(this.page).toHaveURL(/\/admin\/profile/);
 
-    // Personal information (the phone number is shown with a +977 prefix)
+    // Personal information
     const personal = this.profileCard("Personal Information");
     await expect(this.profileField(personal, "First Name")).toContainText(
       containing(user.firstname),

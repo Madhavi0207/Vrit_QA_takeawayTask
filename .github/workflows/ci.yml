@@ -6,15 +6,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  # Uncomment for scheduled runs (weekdays 03:00 UTC).
-  # schedule:
-  #   - cron: "0 3 * * 1-5"
 
 permissions:
   contents: read
 
 jobs:
-  # ---------- CI: Fast checks, safe to run on every PR ----------
   typecheck:
     name: Type check
     runs-on: ubuntu-latest
@@ -34,7 +30,6 @@ jobs:
       - name: TypeScript compile check
         run: npm run typecheck
 
-  # ---------- E2E: Runs against production, not on pull requests ----------
   e2e:
     name: E2E tests
     needs: typecheck
@@ -68,18 +63,16 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      # Create the directory before Cucumber generates reports
       - name: Create reports directory
         run: mkdir -p reports
 
       - name: Run e2e tests
-        run: npm run test:e2e:ci
+        run: npm run test:e2e
         env:
           CI: true
           TESTMAIL_API_KEY: ${{ secrets.TESTMAIL_API_KEY }}
           TESTMAIL_NAMESPACE: ${{ secrets.TESTMAIL_NAMESPACE }}
 
-      # Add test result to GitHub Actions summary
       - name: Add result to run summary
         if: always()
         run: |
@@ -87,7 +80,6 @@ jobs:
           echo "Status: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Download the full report from the Artifacts section." >> "$GITHUB_STEP_SUMMARY"
 
-      # Upload reports even if tests fail
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
